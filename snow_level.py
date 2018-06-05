@@ -20,7 +20,7 @@ def start_snowlvl():
     grey = (100,100,100)
     gray = (50,50,50)
 #   images
-    #backgroundimg = pygame.image.load('snow_background.png')
+    backgroundimg = pygame.image.load('snow_background.jpg')
 #   classes
     class IG_O(pygame.sprite.Sprite):
         def __init__(self,x,y,w,h):
@@ -28,11 +28,7 @@ def start_snowlvl():
             self.y = y
             self.w = w
             self.h = h
-        def moveworld(self):
-            if move == ">":
-                self.x -= 10
-            if move == "<":
-                self.x += 10
+
     class cat(IG_O):
         def __init__(self,x,y,w,h,ws,js):
             #for draw()
@@ -99,10 +95,33 @@ def start_snowlvl():
         def drawclr(self):
             self.rect = pygame.Rect(self.x, self.y, self.w, self.h)
             pygame.draw.rect(gameDisplay, gray, self.rect)
+
     
     Floor = objects(0,620,display_width,100,0,True)
+    Platform1 = objects(700, 500, 350, 50, 0, True)
+    Platform2 = objects(1200, 450, 350, 50, 0, True)
     cat = cat(25,Floor.y-100,220,100,12,17)
-    #background = object(0,0,display_width,display_height,backgroundimg,False)
+    background = objects(0,0,1280,720,backgroundimg,False)
+    
+    def shift(movedir):
+        if movedir == ">":
+            cat.x -= 10
+            Platform1.x -= 10
+            Platform2.x -= 10
+        if movedir == "<":
+            cat.x += 10
+            Platform1.x += 10
+            Platform2.x += 10
+        print(movedir)
+    def movedir():
+            if cat.x <= 20:
+                move = "<"
+            elif cat.x + cat.w >= display_width-20:
+                move = ">"
+            else:
+                move = "="
+            return move
+
 #   gameloop
     def gameloop():
         game_exit = False
@@ -111,10 +130,15 @@ def start_snowlvl():
                 if event.type == pygame.QUIT:
                     game_exit = True
             pygame.event.pump()
+        #   Shift the world
+            shift(movedir())
         #   Draw things
-            gameDisplay.fill(grey)
-            #background.drawimg()
+            #gameDisplay.fill(grey)
+            background.drawimg()
+        #   Platforms
             Floor.drawclr()
+            Platform1.drawclr()
+            Platform2.drawclr()
         #   Cat things
             cat.leap()
             cat.move()
