@@ -10,7 +10,6 @@ def start_snowlvl():
     clock = pygame.time.Clock()
     gameDisplay = pygame.display.set_mode((display_width, display_height))
     pygame.display.set_caption('Snowy mountains')
-    move = "="
 #   colours
     black = (0,0,0)
     white = (255,255,255)
@@ -22,14 +21,7 @@ def start_snowlvl():
 #   images
     backgroundimg = pygame.image.load('snow_background.jpg')
 #   classes
-    class IG_O(pygame.sprite.Sprite):
-        def __init__(self,x,y,w,h):
-            self.x = x
-            self.y = y
-            self.w = w
-            self.h = h
-
-    class cat(IG_O):
+    class cat(pygame.sprite.Sprite):
         def __init__(self,x,y,w,h,ws,js):
             #for draw()
             self.x = x
@@ -45,6 +37,7 @@ def start_snowlvl():
             self.js = js #jumpspeed
             self.jump = 0
             self.falling = False
+            self.rect = pygame.Rect(self.x, self.y, self.w, self.h)
 
         def draw(self):
             self.rect = pygame.Rect(self.x, self.y, self.w, self.h)
@@ -71,22 +64,26 @@ def start_snowlvl():
                 move = '>'
         #Currently does not care what you stand on, just jumps
         def leap(self):
-            if self.falling == True and self.jump < self.js:
-                self.jump += 1
-            elif pygame.key.get_pressed()[pygame.K_SPACE] and self.jump == 0 or pygame.key.get_pressed()[pygame.K_UP] and self.jump == 0:
-                    self.jump = -self.js
+            for platform in Platforms:
+                if platform.y <= self.y + self.h <= platform.y + platform.h and platform.x <= self.x <= platform.x + platform.w:
+                    print("You landed at:", self.x, self.y)
+                    self.jump = 0
+                elif pygame.key.get_pressed()[pygame.K_SPACE] or pygame.key.get_pressed()[pygame.K_UP]:
+                    print("You jumped at:", self.x, self.y)
+                    self.jump -= self.js
                     self.falling = True
-            else:
-                self.jump = 0
-                self.falling = False
-            self.y += self.jump
+                else:
+                    self.jump += 1 #1
+                    print("You are falling at:", self.x, self.y)
+                self.y += self.jump
 
-    class objects(IG_O):
-        def __init__(self,x,y,w,h,img,solid):
+    class objects(pygame.sprite.Sprite):
+        def __init__(self,x,y,w,h,clr,img,solid):
             self.x = x
             self.y = y
             self.w = w
             self.h = h
+            self.clr = clr
             self.img = img
             self.solid = solid
         def drawimg(self):
@@ -94,15 +91,16 @@ def start_snowlvl():
             gameDisplay.blit(self.img, (self.x,self.y))
         def drawclr(self):
             self.rect = pygame.Rect(self.x, self.y, self.w, self.h)
-            pygame.draw.rect(gameDisplay, gray, self.rect)
+            pygame.draw.rect(gameDisplay, self.clr, self.rect)
 
+    Floor = objects(0, display_height-100, display_width, 100, gray, 0, True)
+    Platform1 = objects(700, 500, 350, 50, gray, 0, True)
+    Platform2 = objects(1200, 450, 350, 50, gray, 0, True)
+    cat = cat(25, Floor.y-100, 220, 100, 10, 20) 
+    background = objects(0, 0, display_width, display_height, grey, backgroundimg, False)
     
-    Floor = objects(0,620,display_width,100,0,True)
-    Platform1 = objects(700, 500, 350, 50, 0, True)
-    Platform2 = objects(1200, 450, 350, 50, 0, True)
-    cat = cat(25,Floor.y-100,220,100,12,17)
-    background = objects(0,0,1280,720,backgroundimg,False)
-    
+    Platforms = [Floor, Platform1, Platform2]
+
     def shift(movedir):
         if movedir == ">":
             cat.x -= 10
@@ -112,7 +110,6 @@ def start_snowlvl():
             cat.x += 10
             Platform1.x += 10
             Platform2.x += 10
-        print(movedir)
     def movedir():
             if cat.x <= 20:
                 move = "<"
@@ -134,7 +131,8 @@ def start_snowlvl():
             shift(movedir())
         #   Draw things
             #gameDisplay.fill(grey)
-            background.drawimg()
+            background.drawclr()
+            cat.draw()
         #   Platforms
             Floor.drawclr()
             Platform1.drawclr()
@@ -142,7 +140,6 @@ def start_snowlvl():
         #   Cat things
             cat.leap()
             cat.move()
-            cat.draw()
             pygame.display.update()
             clock.tick(FPS)
     gameloop()
